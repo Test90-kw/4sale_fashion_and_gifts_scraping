@@ -41,13 +41,13 @@ jobs:
           
       - name: Run the scraper
         env:
-          FF_GCLOUD_KEY_JSON: ${{ secrets.FF_GCLOUD_KEY_JSON }}
+          FF_GCLOUD_KEY_JSON: ${{ secrets.GCLOUD_KEY_JSON }}
         run: |
           python fashionANDfamily_main.py
       
       - name: Run the scraper2
         env:
-          GIFTS_GCLOUD_KEY_JSON: ${{ secrets.GIFTS_GCLOUD_KEY_JSON }}
+          GIFTS_GCLOUD_KEY_JSON: ${{ secrets.GCLOUD_KEY_JSON }}
         run: |
           python gifts_main.py
       
