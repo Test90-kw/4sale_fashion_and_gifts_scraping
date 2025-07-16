@@ -6,28 +6,28 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 from pathlib import Path
-from DetailsScraper import DetailsScraping
-from SavingOnDriveFashionAndFamily import SavingOnDriveFashionAndFamily
+from DetailsScraper import DetailsScraping  # Your scraping logic
+from SavingOnDriveFashionAndFamily import SavingOnDriveFashionAndFamily  # Your Drive upload logic
 
 
 class FashionAndFamilyMainScraper:
     def __init__(self, fashionANDfamilys_data: Dict[str, List[Tuple[str, int]]]):
-        self.fashionANDfamilys_data = fashionANDfamilys_data
-        self.chunk_size = 2
-        self.max_concurrent_links = 2
+        self.fashionANDfamilys_data = fashionANDfamilys_data  # Dictionary with category name and URL/page count tuples
+        self.chunk_size = 2  # How many categories to process per chunk
+        self.max_concurrent_links = 2  # Max pages to scrape concurrently
         self.logger = logging.getLogger(__name__)
-        self.setup_logging()
-        self.temp_dir = Path("temp_files")
+        self.setup_logging()  # Initialize logging
+        self.temp_dir = Path("temp_files")  # Folder to temporarily store Excel files
         self.temp_dir.mkdir(exist_ok=True)
-        self.upload_retries = 3
-        self.upload_retry_delay = 15
-        self.page_delay = 3
-        self.chunk_delay = 10
+        self.upload_retries = 3  # Max attempts to retry uploads
+        self.upload_retry_delay = 15  # Delay (seconds) between upload retries
+        self.page_delay = 3  # Delay between scraping each page
+        self.chunk_delay = 10  # Delay between scraping each chunk
 
     def setup_logging(self):
         """Initialize logging configuration."""
-        stream_handler = logging.StreamHandler()
-        file_handler = logging.FileHandler("scraper.log")
+        stream_handler = logging.StreamHandler()  # Log to console
+        file_handler = logging.FileHandler("scraper.log")  # Log to file
 
         logging.basicConfig(
             level=logging.INFO,
@@ -41,9 +41,9 @@ class FashionAndFamilyMainScraper:
         """Scrape data for a single category."""
         self.logger.info(f"Starting to scrape {fashionANDfamily_name}")
         card_data = []
-        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")  # Only include listings from yesterday
 
-        async with semaphore:
+        async with semaphore:  # Limit concurrency
             for url_template, page_count in urls:
                 for page in range(1, page_count + 1):
                     url = url_template.format(page)
@@ -67,8 +67,7 @@ class FashionAndFamilyMainScraper:
             self.logger.info(f"No data to save for {fashionANDfamily_name}, skipping Excel file creation.")
             return None
 
-        # Sanitize filename by replacing invalid characters
-        safe_name = fashionANDfamily_name.replace('/', '_').replace('\\', '_')
+        safe_name = fashionANDfamily_name.replace('/', '_').replace('\\', '_')  # Sanitize file name
         excel_file = Path(f"{safe_name}.xlsx")
         try:
             df = pd.DataFrame(card_data)
@@ -88,14 +87,11 @@ class FashionAndFamilyMainScraper:
             self.logger.info(f"Checking local files before upload: {files}")
             for file in files:
                 self.logger.info(f"File {file} exists: {os.path.exists(file)}, size: {os.path.getsize(file) if os.path.exists(file) else 'N/A'}")
- 
+
             folder_id = drive_saver.get_folder_id(yesterday)
             if not folder_id:
                 self.logger.info(f"Creating new folder for date: {yesterday}")
                 folder_id = drive_saver.create_folder(yesterday)
-                if not folder_id:
-                    raise Exception("Failed to create or get folder ID")
-                self.logger.info(f"Created new folder '{yesterday}' with ID: {folder_id}")
 
             for file in files:
                 for attempt in range(self.upload_retries):
@@ -115,7 +111,7 @@ class FashionAndFamilyMainScraper:
                         if attempt < self.upload_retries - 1:
                             self.logger.info(f"Retrying after {self.upload_retry_delay} seconds...")
                             await asyncio.sleep(self.upload_retry_delay)
-                            drive_saver.authenticate()  # Re-authenticate before retry
+                            drive_saver.authenticate()
                         else:
                             self.logger.error(f"Failed to upload {file} after {self.upload_retries} attempts")
 
@@ -194,6 +190,7 @@ class FashionAndFamilyMainScraper:
 
 
 if __name__ == "__main__":
+    # Dictionary defining all categories and their paginated URLs
     fashionANDfamilys_data = {
         "صالات رياضة و منتجعات صحية": [("https://www.q84sale.com/ar/fashion-and-family/gym-and-spa/{}", 2)],
         "ملابس رجالية": [("https://www.q84sale.com/ar/fashion-and-family/men-clothes/{}", 1)],
