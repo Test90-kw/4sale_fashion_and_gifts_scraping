@@ -10,7 +10,7 @@ class SavingOnDriveFashionAndFamily:
         self.credentials_dict = credentials_dict
         self.scopes = ['https://www.googleapis.com/auth/drive']
         self.service = None
-        self.parent_folder_id = '1FDl0f3Ber3HkBDlijEY_0IxZn2QVbT4X'  # Your parent folder ID
+        self.parent_folder_id = '1gNv7Dnak050_q4pXNSq2bPKtAbIQ9MOp'  # Your parent folder ID
 
     def authenticate(self):
         """Authenticate with Google Drive API."""
